@@ -8,30 +8,30 @@ FEDIMINT_VERSION="0.3.0"
 
 DOCKER_COMPOSE_FILE=https://raw.githubusercontent.com/tonygiorgio/fedimint/mainnet-deploy/docker/${FEDIMINT_VERSION}/full-tls-mainnet/docker-compose.yaml
 
-DOCKER_COMPOSE=docker-compose
+DOCKER_COMPOSE="docker compose"
 if docker compose version|grep 'Docker Compose' >& /dev/null; then
   DOCKER_COMPOSE="docker compose"
-elif ! [ -x "$(command -v docker-compose)" ]; then
+elif ! [ -x "$(command -v docker compose)" ]; then
   # check if we are running as root
   if [ "$EUID" -ne 0 ]; then
     echo 'Error: docker-compose is not installed and we can not install it for you.' >&2
     exit 1
   fi
   if [ -x "$(command -v apt)" ]; then
-    apt install -y docker-compose
+    apt install -y docker-compose-v2
   elif [ -x "$(command -v yum)" ]; then
-    yum install -y docker-compose
+    yum install -y docker-compose-v2
   elif [ -x "$(command -v dnf)" ]; then
-    dnf install -y docker-compose
+    dnf install -y docker-compose-v2
   elif [ -x "$(command -v pacman)" ]; then
-    pacman -S --noconfirm docker-compose
+    pacman -S --noconfirm docker-compose-v2
   elif [ -x "$(command -v apk)" ]; then
-    apk add docker-compose
+    apk add docker-compose-v2
   else
-    echo 'Error: docker-compose is not installed and we could not install it for you.' >&2
+    echo 'Error: docker-compose-v2 is not installed and we could not install it for you.' >&2
     exit 1
   fi
-  if ! [ -x "$(command -v docker-compose)" ]; then
+  if ! [ -x "$(command -v docker compose)" ]; then
     echo 'Error: docker-compose is not installed and we could not install it for you.' >&2
     exit 1
   fi
@@ -260,8 +260,8 @@ else
 fi
 
 echo
-echo "Running '$DOCKER_COMPOSE up -d' to start the services"
-$DOCKER_COMPOSE up -d
+echo "Running '$DOCKER_COMPOSE up --detach' to start the services"
+$DOCKER_COMPOSE up --detach
 
 echo -n "Waiting for fedimintd to be ready. Don't do anything yet..."
 
@@ -284,7 +284,7 @@ wait_fedimintd_ready() {
 wait_fedimintd_ready --insecure
 
 echo "Looks good. Now will check if certificate is okay."
-echo "You may take a look at '$DOCKER_COMPOSE logs -f traefik' it this takes too long"
+echo "You may take a look at '$DOCKER_COMPOSE logs --follow traefik' it this takes too long"
 echo "But before doing that, please wait at least 5 minutes, as it may take a while to get the certificate. Be patient."
 echo -n "Checking, please wait..."
 
@@ -293,7 +293,7 @@ wait_fedimintd_ready
 echo "Good!"
 
 echo
-echo "Optionally run '$DOCKER_COMPOSE logs -f' to see the logs"
+echo "Optionally run '$DOCKER_COMPOSE logs --follow' to see the logs"
 echo "You can access the fedimint dashboard at https://guardian-ui.${host_name[*]}"
 if [ "$WITH_GATEWAY" = true ]; then
   echo "The LN gateway at https://gateway-ui.${host_name[*]}"
